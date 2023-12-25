@@ -445,11 +445,11 @@ function Home() {
                 <button onClick={handleFile1}>Read Users</button> */}
                 <br></br>
                 <br></br>
-                <input type="file" id="contestuser" />
+                {/* <input type="file" id="contestuser" />
                 <button onClick={handleContestSheet}>Contest Users</button>
                 <br></br>
                 <input type="file" id="upsolvedproblems" />
-                <button onClick={handleupsolvedProblems}>Upload upsolvedproblems</button>
+                <button onClick={handleupsolvedProblems}>Upload upsolvedproblems</button> */}
                 <br></br>
                 <br>
                 </br>
