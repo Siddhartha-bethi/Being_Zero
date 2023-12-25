@@ -34,7 +34,6 @@ function Home() {
     async function loadPageData(){
         let url1 = globalurl+`batch/getAllBatches`;
         let batchres = await axios.get(url1);
-        console.log(batches);
         let batchobj = batchres.data; 
         let batches = batchobj.map((b)=>{
             return b.batch;
