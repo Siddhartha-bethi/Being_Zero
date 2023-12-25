@@ -30,16 +30,17 @@ function Home() {
     const [userStatus, setUserStatus ] = useState({});
     const [allbatches, setAllBatches] = useState([]);
     const [allStarters,setAllStarters] = useState([]);
-
+    const globalurl = `https://bz-9th4.onrender.com/`
     async function loadPageData(){
-        let url1 = `http://localhost:2000/batch/getAllBatches`;
+        let url1 = globalurl+`batch/getAllBatches`;
         let batchres = await axios.get(url1);
+        console.log(batches);
         let batchobj = batchres.data; 
         let batches = batchobj.map((b)=>{
             return b.batch;
         })
         setAllBatches([...batches]);
-        let url2 = `http://localhost:2000/contests/getAllStartersCode`;
+        let url2 = globalurl+`contests/getAllStartersCode`;
         let allStartersres = await axios.get(url2);
         let startesobj = allStartersres.data;
         let starters = startesobj.map((s)=>{
@@ -66,7 +67,7 @@ function Home() {
                 const data = XLSX.utils.sheet_to_json(sheet);
                 console.log("My data is data is ", data);
                 try{
-                    let url = "http://localhost:2000/contestData/updateupsolvedProblems";
+                    let url = globalurl+"contestData/updateupsolvedProblems";
                     let res = await axios.post(url, data);
                     console.log(res.data);
                     }
@@ -100,7 +101,7 @@ function Home() {
                 const data = XLSX.utils.sheet_to_json(sheet);
                 console.log("My data is ", data);
                 try{
-                    let url = "http://localhost:2000/contestData/postContestDetails";
+                    let url = globalurl+"contestData/postContestDetails";
                     let res = await axios.post(url, data);
                     console.log(res.data);
                     }
@@ -149,7 +150,7 @@ function Home() {
                 // Convert the sheet data to JSON
                 const data = XLSX.utils.sheet_to_json(sheet);
                 console.log("data is ", data);
-                let res = await axios.post("http://localhost:2000/users/newusers", data);
+                let res = await axios.post(globalurl+"users/newusers", data);
                 console.log("response got is ", res.data);
 
 
@@ -204,7 +205,7 @@ function Home() {
                     rollNumbers: rolls
                 }
                 console.log(object);
-                let res = await axios.post("http://localhost:2000/batch/postbatches", object);
+                let res = await axios.post(globalurl+"batch/postbatches", object);
                 console.log("response got is ", res.data);
 
 
@@ -354,7 +355,7 @@ function Home() {
         let code = document.getElementById("code").value
         console.log("batch is ",batch);
         console.log("code is ",code);
-        let url = `http://localhost:2000/contests/getuserproblemcontestDetails?batch=${batch}&code=${code}`;
+        let url = globalurl+`contests/getuserproblemcontestDetails?batch=${batch}&code=${code}`;
         let res = await axios.get(url);
         let userProblemObj = res.data["userProblemObj"];
         let usercontestObj = res.data["usercontestObj"];

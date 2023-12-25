@@ -18,9 +18,9 @@ const AddContest = () => {
     contestObj["problems"] = problems;
     contestObj["startTime"] = new Date();
     contestObj["endTime"] = new Date();
-
+    const globalurl = `https://bz-9th4.onrender.com/`
     console.log(contestObj);
-    let url = `http://localhost:2000/newcontest/addnewcontest`;
+    let url = globalurl+`newcontest/addnewcontest`;
     let newContestRes = await axios.post(url,contestObj);
     console.log(newContestRes.data);
   }
