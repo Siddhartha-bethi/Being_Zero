@@ -20,7 +20,6 @@ const problemRouter = require("./Routes/problem");
 const newContestRouter = require("./Routes/createContest");
 app.use(express.urlencoded({extended:true}));
 
-app.use(express.static(path.join(__dirname, "../my-app/build")));
 
 app.use("/contests", contestRouter);
 app.use("/users", userRouter);
@@ -30,7 +29,7 @@ app.use("/userproblem",userProblem);
 app.use("/contestData", contestDataRouter);
 app.use("/newcontest", newContestRouter);
 
-
+app.use(express.static(path.join(__dirname, "../my-app/build")));
 app.get("/*", async (req, res) => {
     res.sendFile(path.join(__dirname, "../my-app/build/index.html"));
    });
