@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { Chart } from "react-google-charts";
 import StackedBarChart from "./StackedBarChart";
 import AddContest from './AddContest';
+import "./styles.css";
 
 
 import {
@@ -30,7 +31,7 @@ function Home() {
     const [userStatus, setUserStatus ] = useState({});
     const [allbatches, setAllBatches] = useState([]);
     const [allStarters,setAllStarters] = useState([]);
-    const globalurl = `https://bz-9th4.onrender.com/`
+    const globalurl = `http://localhost:2000/`
     async function loadPageData(){
         let url1 = globalurl+`batch/getAllBatches`;
         let batchres = await axios.get(url1);
@@ -445,11 +446,11 @@ function Home() {
                 <button onClick={handleFile1}>Read Users</button> */}
                 <br></br>
                 <br></br>
-                {/* <input type="file" id="contestuser" />
+                <input type="file" id="contestuser" />
                 <button onClick={handleContestSheet}>Contest Users</button>
                 <br></br>
                 <input type="file" id="upsolvedproblems" />
-                <button onClick={handleupsolvedProblems}>Upload upsolvedproblems</button> */}
+                <button onClick={handleupsolvedProblems}>Upload upsolvedproblems</button>
                 <br></br>
                 <br>
                 </br>

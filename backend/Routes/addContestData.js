@@ -19,7 +19,6 @@ router.post("/postContestDetails",async (req,res)=>{
         data.forEach(async element => {
             try{
                 if(element['Userid']=="NOT FILLED" || element['Userid']=="Invalid"){
-                    console.log("invalid userid ",element);
                     let code = element['code']
                     let contestobj = await getData(contestsModel, {contestCode:code});
                     let contestobjId = contestobj[0]["_id"];
@@ -50,7 +49,6 @@ router.post("/postContestDetails",async (req,res)=>{
                             solved : [],
                             partialSolved : []
                         }
-                        console.log("invalid obj is ",obj);
                         let res = await AddToCollection(userContestModel, obj);
                     }
                     else{
@@ -72,7 +70,7 @@ router.post("/postContestDetails",async (req,res)=>{
                     }
                     }
                     else{
-                    let filter = {rollNumber: -1}
+                        filter = {rollNumber: -1}
                     }
                     let userobj = await getData(usersModel, filter);
                     let solved=[]
@@ -186,14 +184,9 @@ router.post("/postContestDetails",async (req,res)=>{
                             status : status
                         }
                         let res = await AddToCollection(userProblemModel, obj);
-                        // console.log(res[0].length);
                         num+=1;
-                        //console.log(res);
                     }
                      console.log(num);
-                    // console.log("allsoved ",allsolvedProblemIds);
-                    // console.log("partial ",allpartialProblemIds);
-                    // console.log("unsolved ",unsolvedProblemIds);
                 }
             }catch(err){
                 console.log("error while adding user details ")
@@ -327,7 +320,6 @@ router.post("/updateupsolvedProblems",async(req,res)=>{
                         const prbslug = upsolvedslugs[index];
                         console.log("problem slug is ",prbslug);
                         problemObj = await problemsModel.find({slug:prbslug});
-                        //console.log("problemObj is ",problemObj);
                         let prbId = problemObj[0]["_id"];
                         const pindex = await getIndexOfProblemFromDiv(div, prbId);
                         let status = 'upsolved';
@@ -357,14 +349,9 @@ router.post("/updateupsolvedProblems",async(req,res)=>{
     res.send("updated upsolved count")
 })
 
-router.post("/getupsolvestatus",(req,res)=>{
-
-})
-
 async function getupsolvestatus(userprbObj){
     let upsolvestatus = {}
     userprbObj.forEach(up=> {
-        console.log(up.status, up.problemId.name);
         if(up.status=='upsolved'){
             if(upsolvestatus.hasOwnProperty(up.problemId.name)==false){
                 upsolvestatus[up.problemId.name]=0

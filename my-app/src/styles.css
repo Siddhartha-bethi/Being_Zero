@@ -1,0 +1,30 @@
+/* styles.css */
+
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 20px;
+  }
+  
+  .App1 {
+    max-width: 800px;
+    margin: auto;
+  }
+  
+  button {
+    padding: 10px;
+    margin: 5px;
+    cursor: pointer;
+  }
+  
+  input,
+  select {
+    margin: 5px;
+    padding: 8px;
+  }
+  
+  label {
+    margin-top: 10px;
+  }
+  
+  /* Add more styles as needed */
+  
