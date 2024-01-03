@@ -38,6 +38,6 @@ app.get("/*", async (req, res) => {
 app.get("/",(req,res)=>{
     res.send("Welcome to home page of backend");
 })
-app.listen("2000",()=>{
+app.listen(2000,()=>{
     console.log("port is listing to 2000");
 })
