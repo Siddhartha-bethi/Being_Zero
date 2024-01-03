@@ -20,7 +20,6 @@ const problemRouter = require("./Routes/problem");
 const newContestRouter = require("./Routes/createContest");
 app.use(express.urlencoded({extended:true}));
 
-
 app.use("/contests", contestRouter);
 app.use("/users", userRouter);
 app.use("/batch", batchRouter);
