@@ -31,7 +31,7 @@ function Home() {
     const [userStatus, setUserStatus ] = useState({});
     const [allbatches, setAllBatches] = useState([]);
     const [allStarters,setAllStarters] = useState([]);
-    const globalurl = `/`
+    const globalurl = `http://localhost:2000/`;
     async function loadPageData(){
         let url1 = globalurl+`batch/getAllBatches`;
         let batchres = await axios.get(url1);
@@ -444,28 +444,24 @@ function Home() {
                 </br> */}
                 {/* <input type="file" id="excelFileInput1" />
                 <button onClick={handleFile1}>Read Users</button> */}
-                <br></br>
-                <br></br>
-                <input type="file" id="contestuser" />
+                {/* <input type="file" id="contestuser" />
                 <button onClick={handleContestSheet}>Contest Users</button>
                 <br></br>
                 <input type="file" id="upsolvedproblems" />
-                <button onClick={handleupsolvedProblems}>Upload upsolvedproblems</button>
-                <br></br>
-                <br>
-                </br>
-                <button onClick={getData}>Click Here to get Participation Data</button>
-                <br></br>
-                <button onClick={downloadData}>Download Student vs problem Status Data</button>
-                <br></br>
-                <button onClick={downloadInvalidHandles}>Download Invalid handle Students</button>
-                <br></br>
-                <br>
-                </br>
+                <button onClick={handleupsolvedProblems}>Upload upsolvedproblems</button> */}
+                <div style={{ display: 'flex', gap: '20px' }}>
+                    <button className='buttonStyle' onClick={downloadData}>
+                        Download Student vs Problem Status Data
+                    </button>
+                    <button className='buttonStyle' onClick={downloadInvalidHandles}>
+                        Download Invalid Handle Students
+                    </button>
+                </div>
+
                 <label for="batch">Select A Branch</label>
                 <br>
                 </br>
-                <select name="batch" id="batch" onClick={loadPageData}>
+                <select name="batch" id="batch" onClick={loadPageData} onChange={getData}>
                     {
                         allbatches.map((b)=>{
                             return(
@@ -479,7 +475,7 @@ function Home() {
                 <label for="code">Select Code</label>
                 <br>
                 </br>
-                <select name="code" id="code">
+                <select name="code" id="code" onChange={getData}>
                 {
                         allStarters.map((b)=>{
                             return(
@@ -499,6 +495,15 @@ function Home() {
                       }}
                     width={"100%"}
                     height={"400px"}
+                    style={{
+                        // Add your CSS styles here
+                        borderLeft: "1px solid #ccc",
+                        borderRight: "1px solid #ccc",
+                        borderBottom: "1px solid #ccc",
+                        borderRadius: "0 0 8px 8px",
+                        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                        margin: "20px 0",
+                    }}
                 />
                 <Chart
                     chartType="ColumnChart"
@@ -506,10 +511,20 @@ function Home() {
                     options={{
                         title: "Div-wise Students Count",
                         is3D: true,
-                      }}
+                    }}
                     width={"100%"}
                     height={"400px"}
+                    style={{
+                        // Add your CSS styles here
+                        borderLeft: "1px solid #ccc",
+                        borderRight: "1px solid #ccc",
+                        borderBottom: "1px solid #ccc",
+                        borderRadius: "0 0 8px 8px",
+                        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                        margin: "20px 0",
+                    }}
                 />
+
                 <Chart
                     chartType="ColumnChart"
                     data={participationData}
@@ -519,6 +534,15 @@ function Home() {
                       }}
                     width={"100%"}
                     height={"400px"}
+                    style={{
+                        // Add your CSS styles here
+                        borderLeft: "1px solid #ccc",
+                        borderRight: "1px solid #ccc",
+                        borderBottom: "1px solid #ccc",
+                        borderRadius: "0 0 8px 8px",
+                        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                        margin: "20px 0",
+                    }}
                 />
                 <Chart
                         chartType="ColumnChart"
@@ -541,6 +565,15 @@ function Home() {
                         }}
                         width="100%"
                         height="400px"
+                        style={{
+                            // Add your CSS styles here
+                            borderLeft: "1px solid #ccc",
+                            borderRight: "1px solid #ccc",
+                            borderBottom: "1px solid #ccc",
+                            borderRadius: "0 0 8px 8px",
+                            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                            margin: "20px 0",
+                        }}
                 />
             </body>
         </div>
