@@ -29,6 +29,7 @@ app.use("/contestData", contestDataRouter);
 app.use("/newcontest", newContestRouter);
 
 app.use(express.static(path.join(__dirname, "../my-app/build")));
+
 app.get("/*", async (req, res) => {
     res.sendFile(path.join(__dirname, "../my-app/build/index.html"));
    });
