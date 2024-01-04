@@ -31,7 +31,8 @@ function Home() {
     const [userStatus, setUserStatus ] = useState({});
     const [allbatches, setAllBatches] = useState([]);
     const [allStarters,setAllStarters] = useState([]);
-    const globalurl = `http://localhost:2000/`;
+    //const globalurl = `http://localhost:2000/`;
+    const globalurl = `/`;
     async function loadPageData(){
         let url1 = globalurl+`batch/getAllBatches`;
         let batchres = await axios.get(url1);
