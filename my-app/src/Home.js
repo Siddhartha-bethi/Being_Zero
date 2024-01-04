@@ -7,6 +7,7 @@ import { Chart } from "react-google-charts";
 import StackedBarChart from "./StackedBarChart";
 import AddContest from './AddContest';
 import "./styles.css";
+import loadingGif from './loading.gif'; 
 
 
 import {
@@ -31,6 +32,7 @@ function Home() {
     const [userStatus, setUserStatus ] = useState({});
     const [allbatches, setAllBatches] = useState([]);
     const [allStarters,setAllStarters] = useState([]);
+    const [loading, setLoading] = useState(false);
     //const globalurl = `http://localhost:2000/`;
     const globalurl = `/`;
     async function loadPageData(){
@@ -47,6 +49,7 @@ function Home() {
         let starters = startesobj.map((s)=>{
             return s.contestCode;
         })
+        console.log("starters is ",starters);
         setAllStarters([...starters]);
     }
       
@@ -351,6 +354,7 @@ function Home() {
     }
 
     async function getData() {
+        setLoading(true)
         console.log("came to getData"); 
         let batch = document.getElementById("batch").value
         let code = document.getElementById("code").value
@@ -375,6 +379,7 @@ function Home() {
         await buildProblemSolvedCount(data)
         await buildDivChartData(usercontestObj);
         await buildHandleStatusData(usercontestObj);
+        setLoading(false);
     };
 
     async function downloadData(){
@@ -434,6 +439,9 @@ function Home() {
         // Save the workbook to an Excel file
         XLSX.writeFile(wb, 'output.xlsx');
     }
+    useEffect(()=>{
+        loadPageData();
+    },[])
     return (
         <div className="App1">
             <body>
@@ -462,7 +470,7 @@ function Home() {
                 <label for="batch">Select A Branch</label>
                 <br>
                 </br>
-                <select name="batch" id="batch" onClick={loadPageData} onChange={getData}>
+                <select name="batch" id="batch" onChange={getData}>
                     {
                         allbatches.map((b)=>{
                             return(
@@ -485,87 +493,20 @@ function Home() {
                         })
                     }
                 </select>    
-
                 <br></br>
-                <Chart
-                    chartType="ColumnChart"
-                    data={handleStatus}
-                    options={{
-                        title: "Handles Status",
-                        is3D: true,
-                      }}
-                    width={"100%"}
-                    height={"400px"}
-                    style={{
-                        // Add your CSS styles here
-                        borderLeft: "1px solid #ccc",
-                        borderRight: "1px solid #ccc",
-                        borderBottom: "1px solid #ccc",
-                        borderRadius: "0 0 8px 8px",
-                        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-                        margin: "20px 0",
-                    }}
-                />
-                <Chart
-                    chartType="ColumnChart"
-                    data={divData}
-                    options={{
-                        title: "Div-wise Students Count",
-                        is3D: true,
-                    }}
-                    width={"100%"}
-                    height={"400px"}
-                    style={{
-                        // Add your CSS styles here
-                        borderLeft: "1px solid #ccc",
-                        borderRight: "1px solid #ccc",
-                        borderBottom: "1px solid #ccc",
-                        borderRadius: "0 0 8px 8px",
-                        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-                        margin: "20px 0",
-                    }}
-                />
-
-                <Chart
-                    chartType="ColumnChart"
-                    data={participationData}
-                    options={{
-                        title: "Participation Status in Contest",
-                        is3D: true,
-                      }}
-                    width={"100%"}
-                    height={"400px"}
-                    style={{
-                        // Add your CSS styles here
-                        borderLeft: "1px solid #ccc",
-                        borderRight: "1px solid #ccc",
-                        borderBottom: "1px solid #ccc",
-                        borderRadius: "0 0 8px 8px",
-                        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-                        margin: "20px 0",
-                    }}
-                />
-                <Chart
+                {loading ? (
+                    <img src={loadingGif} alt="Loading..." style={{ width: '250px', height: '250px' }} />
+                ) : (
+                    <div className='graphs'>
+                    <Chart
                         chartType="ColumnChart"
-                        data={combine}
+                        data={handleStatus}
                         options={{
-                            title: 'Combined Chart',
+                            title: "Handles Status",
                             is3D: true,
-                            bar: { groupWidth: '80%' },
-                            series: {
-                                0: { color: 'blue' },
-                                1: { color: 'green' },
-                            },
-                            dataLabels: {
-                                visible: true,
-                                fontSize: 12,
-                                bold: true,
-                                color: 'black',
-                                format: '#',
-                            },
                         }}
-                        width="100%"
-                        height="400px"
+                        width={"100%"}
+                        height={"400px"}
                         style={{
                             // Add your CSS styles here
                             borderLeft: "1px solid #ccc",
@@ -575,7 +516,79 @@ function Home() {
                             boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
                             margin: "20px 0",
                         }}
-                />
+                    />
+                    <Chart
+                        chartType="ColumnChart"
+                        data={divData}
+                        options={{
+                            title: "Div-wise Students Count",
+                            is3D: true,
+                        }}
+                        width={"100%"}
+                        height={"400px"}
+                        style={{
+                            // Add your CSS styles here
+                            borderLeft: "1px solid #ccc",
+                            borderRight: "1px solid #ccc",
+                            borderBottom: "1px solid #ccc",
+                            borderRadius: "0 0 8px 8px",
+                            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                            margin: "20px 0",
+                        }}
+                    />
+
+                    <Chart
+                        chartType="ColumnChart"
+                        data={participationData}
+                        options={{
+                            title: "Participation Status in Contest",
+                            is3D: true,
+                        }}
+                        width={"100%"}
+                        height={"400px"}
+                        style={{
+                            // Add your CSS styles here
+                            borderLeft: "1px solid #ccc",
+                            borderRight: "1px solid #ccc",
+                            borderBottom: "1px solid #ccc",
+                            borderRadius: "0 0 8px 8px",
+                            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                            margin: "20px 0",
+                        }}
+                    />
+                    <Chart
+                            chartType="ColumnChart"
+                            data={combine}
+                            options={{
+                                title: 'Combined Chart',
+                                is3D: true,
+                                bar: { groupWidth: '80%' },
+                                series: {
+                                    0: { color: 'blue' },
+                                    1: { color: 'green' },
+                                },
+                                dataLabels: {
+                                    visible: true,
+                                    fontSize: 12,
+                                    bold: true,
+                                    color: 'black',
+                                    format: '#',
+                                },
+                            }}
+                            width="100%"
+                            height="400px"
+                            style={{
+                                // Add your CSS styles here
+                                borderLeft: "1px solid #ccc",
+                                borderRight: "1px solid #ccc",
+                                borderBottom: "1px solid #ccc",
+                                borderRadius: "0 0 8px 8px",
+                                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                                margin: "20px 0",
+                            }}
+                        />
+                        </div>
+                )}
             </body>
         </div>
     );
