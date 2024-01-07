@@ -13,26 +13,25 @@ app.use(cors(corsOptions));
 const contestRouter = require("./Routes/contests");
 const userRouter = require("./Routes/users");
 const batchRouter = require("./Routes/batches");
-const charRouter = require("./Routes/charts");
-const userProblem = require("./Routes/userProblem");
+// const charRouter = require("./Routes/charts");
+// const userProblem = require("./Routes/userProblem");
 const contestDataRouter = require("./Routes/addContestData");
-const problemRouter = require("./Routes/problem");
-const newContestRouter = require("./Routes/createContest");
+// const problemRouter = require("./Routes/problem");
+// const newContestRouter = require("./Routes/createContest");
 app.use(express.urlencoded({extended:true}));
 
 app.use("/contests", contestRouter);
 app.use("/users", userRouter);
 app.use("/batch", batchRouter);
-app.use("/chart", charRouter);
-app.use("/userproblem",userProblem);
+// app.use("/userproblem",userProblem);
 app.use("/contestData", contestDataRouter);
-app.use("/newcontest", newContestRouter);
+// app.use("/newcontest", newContestRouter);
 
-app.use(express.static(path.join(__dirname, "../my-app/build")));
+// app.use(express.static(path.join(__dirname, "../my-app/build")));
 
-app.get("/*", async (req, res) => {
-    res.sendFile(path.join(__dirname, "../my-app/build/index.html"));
-   });
+// app.get("/*", async (req, res) => {
+//     res.sendFile(path.join(__dirname, "../my-app/build/index.html"));
+//    });
 
 app.get("/",(req,res)=>{
     res.send("Welcome to home page of backend");

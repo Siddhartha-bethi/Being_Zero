@@ -16,5 +16,6 @@ var userContestSchema = new Schema({
     participated  : {type : String}
 },{timestamps:true});
 
+userContestSchema.index({ userId: 1, contestId: 1 }, { unique: true });
 const userContestModel=mongoose.model("userContest", userContestSchema);
 module.exports=userContestModel;

@@ -1,0 +1,1 @@
+export const globalUrl = `http://localhost:2000/`;

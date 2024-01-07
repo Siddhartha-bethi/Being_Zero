@@ -18,9 +18,9 @@ const AddContest = () => {
     contestObj["problems"] = problems;
     contestObj["startTime"] = new Date();
     contestObj["endTime"] = new Date();
-    const globalurl = ``
+    const globalurl = `http://localhost:2000/`
     console.log(contestObj);
-    let url = globalurl+`http://localhost:2000/`;
+    let url = globalurl+`newcontest/addnewcontest`;
     let newContestRes = await axios.post(url,contestObj);
     console.log(newContestRes.data);
   }

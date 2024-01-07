@@ -1,28 +1,15 @@
-import logo from './logo.svg';
 import './App.css';
 import axios from "axios";
 import * as XLSX from 'xlsx';
 import { useEffect, useState } from 'react';
 import { Chart } from "react-google-charts";
-import StackedBarChart from "./StackedBarChart";
-import AddContest from './AddContest';
 import "./styles.css";
 import loadingGif from './loading.gif'; 
-
-
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    BarElement,
-    Title,
-    Tooltip,
-    Legend,
-    Colors,
-  } from 'chart.js';
-  import { Bar } from 'react-chartjs-2';
+import { globalUrl } from '../constants';
+import { useNavigate } from "react-router-dom";
 
 function Home() {
+
     const [combine, setCombine] = useState([]);
     const [divData, setDivData] = useState([]);
     const [participationData, setParticipationData] = useState([]);
@@ -33,17 +20,18 @@ function Home() {
     const [allbatches, setAllBatches] = useState([]);
     const [allStarters,setAllStarters] = useState([]);
     const [loading, setLoading] = useState(false);
-    //const globalurl = `http://localhost:2000/`;
-    const globalurl = `/`;
+    const [allBatchNames, setAllBatcheNames] = useState([]);
+    const navigator = useNavigate();
+    
     async function loadPageData(){
-        let url1 = globalurl+`batch/getAllBatches`;
+        let url1 = globalUrl+`batch/getAllBatches`;
         let batchres = await axios.get(url1);
         let batchobj = batchres.data; 
         let batches = batchobj.map((b)=>{
             return b.batch;
         })
-        setAllBatches([...batches]);
-        let url2 = globalurl+`contests/getAllStartersCode`;
+       setAllBatches([...batches]);
+        let url2 = globalUrl+`contests/getAllStartersCode`;
         let allStartersres = await axios.get(url2);
         let startesobj = allStartersres.data;
         let starters = startesobj.map((s)=>{
@@ -51,176 +39,6 @@ function Home() {
         })
         console.log("starters is ",starters);
         setAllStarters([...starters]);
-    }
-      
-    async function handleupsolvedProblems(){
-        console.log("entered handleContestSheet");
-        const input = document.getElementById('upsolvedproblems');
-        if (!input.files || input.files.length === 0) {
-            alert('Please select an Excel file.');
-            return;
-        }
-        const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = async function (e) {
-            try {
-                const binaryData = e.target.result;
-                const workbook = XLSX.read(binaryData, { type: 'binary' });
-                const sheetName = workbook.SheetNames[0];
-                const sheet = workbook.Sheets[sheetName];
-                const data = XLSX.utils.sheet_to_json(sheet);
-                console.log("My data is data is ", data);
-                try{
-                    let url = globalurl+"contestData/updateupsolvedProblems";
-                    let res = await axios.post(url, data);
-                    console.log(res.data);
-                    }
-                catch(err){
-                        console.log("some error while adding contest details to db");
-                    }
-            } catch (error) {
-                console.error('Error parsing Excel file:', error);
-                alert('Error parsing Excel file.');
-                return null;
-            }
-        };
-        // Read the file as binary data
-        reader.readAsBinaryString(file);
-    }
-    async function handleContestSheet() {
-        console.log("entered handleContestSheet");
-        const input = document.getElementById('contestuser');
-        if (!input.files || input.files.length === 0) {
-            alert('Please select an Excel file.');
-            return;
-        }
-        const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = async function (e) {
-            try {
-                const binaryData = e.target.result;
-                const workbook = XLSX.read(binaryData, { type: 'binary' });
-                const sheetName = workbook.SheetNames[0];
-                const sheet = workbook.Sheets[sheetName];
-                const data = XLSX.utils.sheet_to_json(sheet);
-                console.log("My data is ", data);
-                try{
-                    let url = globalurl+"contestData/postContestDetails";
-                    let res = await axios.post(url, data);
-                    console.log(res.data);
-                    }
-                catch(err){
-                        console.log("some error while adding contest details to db");
-                    }
-            } catch (error) {
-                console.error('Error parsing Excel file:', error);
-                alert('Error parsing Excel file.');
-                return null;
-            }
-        };
-        // Read the file as binary data
-        reader.readAsBinaryString(file);
-    }
-
-    async function handleFile1() {
-        console.log("entered")
-        const input = document.getElementById('excelFileInput1');
-
-        // Ensure a file was selected
-        if (!input.files || input.files.length === 0) {
-            alert('Please select an Excel file.');
-            return;
-        }
-
-        // Get the selected file
-        const file = input.files[0];
-
-        // Create a FileReader to read the file
-        const reader = new FileReader();
-
-        // Set up the FileReader onload event
-        reader.onload = async function (e) {
-            try {
-                // Get the binary data from the FileReader result
-                const binaryData = e.target.result;
-
-                // Parse the Excel file
-                const workbook = XLSX.read(binaryData, { type: 'binary' });
-
-                // Assuming you have a sheet named 'Sheet1'
-                const sheetName = workbook.SheetNames[0];
-                const sheet = workbook.Sheets[sheetName];
-
-                // Convert the sheet data to JSON
-                const data = XLSX.utils.sheet_to_json(sheet);
-                console.log("data is ", data);
-                let res = await axios.post(globalurl+"users/newusers", data);
-                console.log("response got is ", res.data);
-
-
-            } catch (error) {
-                console.error('Error parsing Excel file:', error);
-                alert('Error parsing Excel file.');
-            }
-        };
-
-        // Read the file as binary data
-        reader.readAsBinaryString(file);
-    }
-
-    async function handleFile2() {
-        console.log("entered")
-        const input = document.getElementById('excelFileInput2');
-
-        // Ensure a file was selected
-        if (!input.files || input.files.length === 0) {
-            alert('Please select an Excel file.');
-            return;
-        }
-
-        // Get the selected file
-        const file = input.files[0];
-
-        // Create a FileReader to read the file
-        const reader = new FileReader();
-
-        // Set up the FileReader onload event
-        reader.onload = async function (e) {
-            try {
-                // Get the binary data from the FileReader result
-                const binaryData = e.target.result;
-
-                // Parse the Excel file
-                const workbook = XLSX.read(binaryData, { type: 'binary' });
-
-                // Assuming you have a sheet named 'Sheet1'
-                const sheetName = workbook.SheetNames[0];
-                const sheet = workbook.Sheets[sheetName];
-
-                // Convert the sheet data to JSON
-                const data = XLSX.utils.sheet_to_json(sheet);
-                let rolls = []
-                console.log("data is ", data);
-                data.forEach(element => {
-                    rolls.push(element['rollNumber'])
-                });
-                let object = {
-                    batch: data[0]['batch'],
-                    rollNumbers: rolls
-                }
-                console.log(object);
-                let res = await axios.post(globalurl+"batch/postbatches", object);
-                console.log("response got is ", res.data);
-
-
-            } catch (error) {
-                console.error('Error parsing Excel file:', error);
-                alert('Error parsing Excel file.');
-            }
-        };
-
-        // Read the file as binary data
-        reader.readAsBinaryString(file);
     }
 
     const combineData = (data1, data2) => {
@@ -360,7 +178,7 @@ function Home() {
         let code = document.getElementById("code").value
         console.log("batch is ",batch);
         console.log("code is ",code);
-        let url = globalurl+`contests/getuserproblemcontestDetails?batch=${batch}&code=${code}`;
+        let url = globalUrl+`contests/getuserproblemcontestDetails?batch=${batch}&code=${code}`;
         let res = await axios.get(url);
         let userProblemObj = res.data["userProblemObj"];
         let usercontestObj = res.data["usercontestObj"];
@@ -439,60 +257,55 @@ function Home() {
         // Save the workbook to an Excel file
         XLSX.writeFile(wb, 'output.xlsx');
     }
+
     useEffect(()=>{
         loadPageData();
     },[])
     return (
         <div className="App1">
             <body>
-                {/* <input  type="file" id="excelFileInput" />
-    <button onClick={handleFile}>Read Excel</button> */}
-                {/* <br>
-                </br>
-                <br>
-                </br> */}
-                {/* <input type="file" id="excelFileInput1" />
-                <button onClick={handleFile1}>Read Users</button> */}
-                {/* <input type="file" id="contestuser" />
-                <button onClick={handleContestSheet}>Contest Users</button>
+                {/* <div class="row mt-4 mb-4">
+                    <nav class="navbar navbar-light">
+                        <form class="container-fluid justify-content-start">
+                            <button class="btn btn-outline-success me-2" type="button" onClick={() => navigator("/addNewUsers")}>AddNewUsers</button>
+                            <button class="btn btn-outline-success me-2" type="button" onClick={() => navigator("/addNewBatchTitle")}>AddNewBatchTitle</button>
+                            <button class="btn btn-outline-success me-2" type="button" onClick={() => navigator("/addUserBatchRelation")}>AddUserBatchRelation</button>
+                            <button class="btn btn-outline-success me-2" type="button" onClick={() => navigator("/AddUserContest")}>AddUserContest</button>
+                        </form>
+                    </nav>
+                </div> */}
+            <div class = "row mt-3">
+                <button type="button" class="btn btn-danger col-3 me-4" onClick={downloadData}>Download Data</button>
+                <button type="button" class="btn btn-danger col-3" onClick={downloadInvalidHandles}>Download Invalid Handle</button>
+            </div>
                 <br></br>
-                <input type="file" id="upsolvedproblems" />
-                <button onClick={handleupsolvedProblems}>Upload upsolvedproblems</button> */}
-                <div style={{ display: 'flex', gap: '20px' }}>
-                    <button className='buttonStyle' onClick={downloadData}>
-                        Download Student vs Problem Status Data
-                    </button>
-                    <button className='buttonStyle' onClick={downloadInvalidHandles}>
-                        Download Invalid Handle Students
-                    </button>
+                <div class="row">
+                    <div class="row mt-2 mb-2 col-4">
+                        <div>
+                            <select class="form-select" name="batch" id="batch" onChange={getData}>
+                                    {allbatches.map((b)=>{
+                                        return(
+                                        <option value = {b}>{b}</option>       
+                                        )
+                                    })
+                                }   
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-2 mb-2 col-4">
+                        <div>
+                            <select class="form-select" name="code" id="code" onChange={getData}>
+                                    {allStarters.map((b)=>{
+                                        return(
+                                        <option value = {b}>{b}</option>       
+                                        )
+                                    })
+                                }   
+                            </select>
+                        </div>
+                    </div>
                 </div>
-
-                <label for="batch">Select A Branch</label>
-                <br>
-                </br>
-                <select name="batch" id="batch" onChange={getData}>
-                    {
-                        allbatches.map((b)=>{
-                            return(
-                          <option value = {b}>{b}</option>       
-                            )
-                        })
-                    }
-                </select>
-
-                <br></br>
-                <label for="code">Select Code</label>
-                <br>
-                </br>
-                <select name="code" id="code" onChange={getData}>
-                {
-                        allStarters.map((b)=>{
-                            return(
-                          <option value = {b}>{b}</option>       
-                            )
-                        })
-                    }
-                </select>    
+                
                 <br></br>
                 {loading ? (
                     <img src={loadingGif} alt="Loading..." style={{ width: '250px', height: '250px' }} />

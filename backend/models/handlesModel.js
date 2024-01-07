@@ -7,10 +7,10 @@ mongoose.connect("mongodb+srv://190330283:190330283@cluster0.z4ozsgz.mongodb.net
 
 var handlesSchema = new Schema({
     userid            : {type: Schema.Types.ObjectId, ref : 'users'},
-    leetcodeHandle    : {type : String},
-    codeforcesHandle  : {type : String},
-    codechefHandle    : {type : String},
-    mentorpickHandle  :  {type : String},
+    leetcodeHandle    : {type : String, required: true, unique: true},
+    codeforcesHandle  : {type : String, required: true, unique: true},
+    codechefHandle    : {type : String, required: true, unique: true},
+    mentorpickHandle  : {type : String, required: true, unique: true},
 })
 const handleModel=mongoose.model("handles", handlesSchema);
 module.exports=handleModel;

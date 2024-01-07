@@ -1,6 +1,6 @@
 const { Timestamp, ObjectId } = require('bson');
 const mongoose = require('mongoose');
-const contestModel = require("./batchModel");
+const contestModel = require("./userBatchModel");
 const problemsModel = require("./ProblemModel"); 
 
 const Schema = mongoose.Schema;
@@ -10,6 +10,7 @@ var contestProblemSchema = new Schema({
     contestId: {type: Schema.Types.ObjectId, ref : 'contests'},
     problemId : {type: Schema.Types.ObjectId, ref : 'problems'},
 },{timestamps:true});
+
 
 const contestProblemModel=mongoose.model("contestProblem", contestProblemSchema);
 module.exports=contestProblemModel;

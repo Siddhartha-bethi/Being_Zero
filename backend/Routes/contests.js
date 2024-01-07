@@ -1,15 +1,14 @@
 const express = require('express');
 const { json } = require("express")
-const {AddToCollection, getData} = require("../DBInteraction")
-const contestModel  = require("../contestModel")
-const contestProblem = require("../contestProblemModel");
-const problemsModel = require("../ProblemModel");
-const batchModel = require('../batchModel');
-const contestProblemModel = require('../contestProblemModel');
-const userProblemModel = require('../userProblemModel');
-const handleModel = require('../handlesModel');
-const userContestModel = require('../userContestModel');
+const {AddOneToCollection, getData} = require("../DBInteraction")
+const contestModel  = require("../models/contestModel")
+const contestProblemModel = require("../models/contestProblemModel");
+const problemsModel = require("../models/ProblemModel");
 const { route } = require('./batches');
+const userProblemModel = require("../models/userProblemModel");
+const userbatchModel = require('../models/userBatchModel');
+const userContestModel = require("../models/userContestModel");
+const batchModel = require('../models/batchModel');
 const router=express.Router()
 
 router.post("/postcontest",async (req,res)=>{
@@ -27,43 +26,27 @@ router.post("/postcontest",async (req,res)=>{
         startTime: startTime,
         endTime: endTime
     }
-    let response = await AddToCollection(contestModel, object);
+    let response = await AddOneToCollection(contestModel, object);
     res.send(response)
 })
-
-router.get("/getcontestProblems", async(req,res)=>{
-    code = req.query.code;
-    console.log("came requirment to get slugs of ",code);
-    let m1= await getData(contestModel, {contestCode:code});
-    let id= m1[0]['_id'];
-    let problems = await getData(contestProblem,{contestId:id});
-    let problemslugs = []
-    for (let index = 0; index < problems.length; index++) {
-        const element = problems[index];
-        const problemId = element['problemId'];
-        const res1 = await getData(problemsModel,{_id:problemId});
-        const slug =res1[0]['slug'];
-        problemslugs.push(slug);
-    }
-    res.send(problemslugs);
-    
-});
 
 router.get("/getuserproblemcontestDetails", async(req,res)=>{
     let batch = req.query.batch;
     let code= req.query.code;
-    let studentsIdObj = await batchModel.find({batch:batch}).select({ "studentid": 1, "_id": 0});
-    studentsIdObj = studentsIdObj[0];
-    let studentIds = studentsIdObj.studentid
+    let batchObj = await batchModel.find({batch:batch});
+    let batchId = batchObj[0]["_id"]
+    let studentIdsObjs = await userbatchModel.find({batchid:batchId}).select({ "studentid": 1, "_id": 0})
+    console.log("students objs are ",studentIdsObjs);
+    let studentIds = studentIdsObjs.map((obj)=>{
+        return obj.studentid;
+    })
     let contestObj = await contestModel.find({contestCode:code})
     let contestId = contestObj[0]["_id"];
-    allContestProblemObj = await contestProblemModel.find({contestId:contestId}).populate("problemId");
-    //console.log(allContestProblemObj)
-    allContestProblemId = allContestProblemObj.map((ele)=>{
+    let allContestProblemObj = await contestProblemModel.find({contestId:contestId}).populate("problemId");
+    let allContestProblemId = allContestProblemObj.map((ele)=>{
         return ele.problemId._id;
     })
     const userProblemObj = await userProblemModel.find({userId:{$in:studentIds},problemId:{$in:allContestProblemId}}).populate(["userId","problemId"]);
-    const result = [];
     const usercontestObj = await userContestModel.find({userId:{$in:studentIds},contestId:contestId}).populate(["userId"]);
     res.json({
         userProblemObj:userProblemObj,
