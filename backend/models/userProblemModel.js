@@ -9,7 +9,10 @@ mongoose.connect("mongodb+srv://190330283:190330283@cluster0.z4ozsgz.mongodb.net
 var userProblemSchema = new Schema({
    userId                 : {type: Schema.Types.ObjectId, ref : 'users'},
    problemId              : {type: Schema.Types.ObjectId, ref : 'problems'},
-   status                 : {type : String, default : 'notSolved'},
+   status                 : {type : String, default : 'unsolved'},
 },{timestamps:true})
+
+
+userProblemSchema.index({ userId: 1, problemId: 1 }, { unique: true });
 const userProblemModel=mongoose.model("userProblem", userProblemSchema);
 module.exports=userProblemModel;

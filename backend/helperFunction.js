@@ -22,7 +22,6 @@ async function AddManyUserBatchCollections(arrayOfObj){
 }
 
 async function findAndUpdateManyCollectionOfUsers(arrayOfObj, filterparameter){
-    console.time("present");
     const promises = arrayOfObj.map(async (document) => {
         const filter = { [filterparameter]: document[filterparameter] };
         const userupdate = {
@@ -39,9 +38,6 @@ async function findAndUpdateManyCollectionOfUsers(arrayOfObj, filterparameter){
             mentorpickHandle: document.mentorpickHandle,
             userid: res1["_id"]
         };
-        if(userupdate.rollNumber=="21251A1264"){
-            console.log("new handles are ", handlesupdate, filter);
-        }
         const handlesfilter = {
             userid: res1["_id"]
         };
@@ -49,7 +45,6 @@ async function findAndUpdateManyCollectionOfUsers(arrayOfObj, filterparameter){
     });
     
     const results = await Promise.all(promises);
-    console.timeEnd("present");
     return results;
     
 }
