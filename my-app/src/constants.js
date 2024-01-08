@@ -1,1 +1,1 @@
-export const globalUrl = `http://localhost:2000/`;
+export const globalUrl = `/`;

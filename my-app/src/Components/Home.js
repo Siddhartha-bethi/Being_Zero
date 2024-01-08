@@ -264,7 +264,7 @@ function Home() {
     return (
         <div className="App1">
             <body>
-                {/* <div class="row mt-4 mb-4">
+                <div class="row mt-4 mb-4">
                     <nav class="navbar navbar-light">
                         <form class="container-fluid justify-content-start">
                             <button class="btn btn-outline-success me-2" type="button" onClick={() => navigator("/addNewUsers")}>AddNewUsers</button>
@@ -273,7 +273,7 @@ function Home() {
                             <button class="btn btn-outline-success me-2" type="button" onClick={() => navigator("/AddUserContest")}>AddUserContest</button>
                         </form>
                     </nav>
-                </div> */}
+                </div>
             <div class = "row mt-3">
                 <button type="button" class="btn btn-danger col-3 me-4" onClick={downloadData}>Download Data</button>
                 <button type="button" class="btn btn-danger col-3" onClick={downloadInvalidHandles}>Download Invalid Handle</button>
