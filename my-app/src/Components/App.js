@@ -17,6 +17,7 @@ function App() {
           <Route path = "/addNewBatchTitle" element = {<AddNewBatchTitle></AddNewBatchTitle>}></Route>
           <Route path = "/addUserBatchRelation" element = {<AddUserBatchRelation></AddUserBatchRelation>}></Route>
           <Route path = "/AddUserContest" element = {<AddUserContest></AddUserContest>}></Route>
+          <Route path = "/AddNewContest" element = {<AddContest></AddContest>}></Route>
         </Routes>
         </BrowserRouter>
       );

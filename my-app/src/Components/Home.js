@@ -75,9 +75,10 @@ function Home() {
                 problemsolvedcount[element['problemName']]+=1
                 problemupsolvedcount[element['problemName']]+=1
             }
-            else if(element['status'] == "upsolved"){
+            else if(element['status'] == "accepted"){
                 problemupsolvedcount[element['problemName']]+=1
             }
+            console.log(element["status"]);
         });
         let solvedProblemsinContest = []
         let solvedProblems =[]
@@ -258,6 +259,26 @@ function Home() {
         XLSX.writeFile(wb, 'output.xlsx');
     }
 
+    async function updateUpsolvedStatusOfBatchInContest(){
+        setLoading(true)
+        try{
+        let batch = document.getElementById("batch").value
+        let code = document.getElementById("code").value
+        let details = {
+            contestCode: code,
+            batch: batch
+            }
+        let url = globalUrl+'upsolve/upsolveData';
+        let res = await axios.post(url, details);
+        console.log(res.data);
+        }
+        catch(error){
+            console.log("error ",error);
+        }
+        setLoading(false);
+        await getData();
+    }
+
     useEffect(()=>{
         loadPageData();
     },[])
@@ -276,7 +297,8 @@ function Home() {
                 </div>
             <div class = "row mt-3">
                 <button type="button" class="btn btn-danger col-3 me-4" onClick={downloadData}>Download Data</button>
-                <button type="button" class="btn btn-danger col-3" onClick={downloadInvalidHandles}>Download Invalid Handle</button>
+                <button type="button" class="btn btn-danger col-3 me-4" onClick={downloadInvalidHandles}>Download Invalid Handle</button>
+                <button type="button" class="btn btn-danger col-3" onClick={updateUpsolvedStatusOfBatchInContest}>Update Upsolved Status</button>
             </div>
                 <br></br>
                 <div class="row">

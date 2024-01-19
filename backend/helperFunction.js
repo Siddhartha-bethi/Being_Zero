@@ -9,9 +9,57 @@ const contestProblemModel = require("./models/contestProblemModel");
 const userProblemModel = require("./models/userProblemModel");
 const userContestModel = require("./models/userContestModel");
 const batchModel = require("./models/batchModel");
-
+const cheerio = require('cheerio');
+const axios = require('axios');
 const {findAndUpdateData, getData, bulkAddTheData, bulkUpdateTheData} = require("./DBInteraction");
 const userbatchModel = require("./models/userBatchModel");
+
+const fetchData=async (url)=>{
+    try{
+        let resp = await axios.get(url);
+        return resp.data;
+    }
+    catch(error){
+        console.log("error occured while fetching data ");
+        console.log(error);
+    }
+}
+
+const givePriority=(verdict)=>{
+    if(verdict == "accepted"){
+        return 10;
+    }
+    if(verdict == "partially accepted"){
+        return 9;
+    }
+    return 8;
+} 
+
+const convertTimeToDate=(timeString)=>{
+    const dateString = timeString;
+
+    // Extracting components from the string
+    const [time, period, date] = dateString.split(' ');
+    const [hours, minutes] = time.split(':');
+    const [day, month, yearShort] = date.split('/');
+
+    // Adjusting hours for PM
+    let adjustedHours = parseInt(hours, 10);
+    if (period === "PM" && adjustedHours !== 12) {
+        adjustedHours += 12;
+    }
+    const year = '20'+yearShort;
+    const convertedDate = new Date(year, month - 1, day, adjustedHours, minutes, 0);
+    return convertedDate.getTime();
+}
+
+async function getRecentSubmissionTime(link){
+    let submissionId = link.split("/")[2];
+    let url = "https://www.codechef.com/api/submission-details/"+submissionId;
+    let res = await axios.get(url);
+    let data = res.data;
+    return data.data.other_details.submissionDate;
+}
 
 async function AddManyUserBatchCollections(arrayOfObj){
     const promise = arrayOfObj.map(async(document)=>{
@@ -391,7 +439,145 @@ async function getProblemIdDivsMap(problemSlugMap){
     return ProblemIdDivsMap
 }
 
-async function UpdateBulkForUpsolved(arrayOfObj){
-
+async function explore_page_helper(element,max_time,slugStatus,$){
+    let time = $?.(element)?.find('td:nth-child(1)')?.text()?.trim();
+    const problem = $?.(element)?.find('td:nth-child(2) a')?.text()?.trim();
+    const verdict = $?.(element)?.find('td:nth-child(3) span')?.attr('title')?.trim(); 
+    const solutionLink = $?.(element)?.find('td:nth-child(5) a')?.attr('href')?.trim(); 
+    let submissionTime = 0;
+    if(time.includes("ago")){
+        try{
+            submissionTime  = await getRecentSubmissionTime(solutionLink);
+        }
+        catch(error){
+            console.log("taking default", solutionLink,problem,verdict);
+            submissionTime = convertTimeToDate(time);
+        }
+    }
+    else{
+        submissionTime = convertTimeToDate(time);
+    }
+    //console.log(submissionTime, problem, verdict, max_time);
+    if(max_time>submissionTime){
+        console.log("gone");
+        return false;
+    }
+    if(problem in slugStatus){
+        p1 = givePriority(slugStatus[problem])
+        p2 = givePriority(verdict)
+        if(p2 > p1){
+            slugStatus[problem]= verdict
+        } 
+    }
+    return true;
 }
-module.exports = {updateUserContestData, AddManyUserBatchCollections,findAndUpdateManyCollectionOfUsers,userBatchMapHelper,AddUserContestData}
+
+async function explore_page(userId , pageNumber, slugStatus, max_time){
+    const url = 'https://www.codechef.com/recent/user?page=' + pageNumber + '&user_handle=' + userId;
+    const response = await fetchData(url);
+    const $ = cheerio.load(response?.content);
+    let max_pages = Number(response?.max_page);
+    if(pageNumber > max_pages){
+        return false;
+    }
+    let problems = [];
+    let results = [];
+    let  lastTime = "";
+    ArrayofElements = [];
+    $?.('.dataTable tbody tr').each((index , element) => {
+        ArrayofElements.push(element);
+    });
+    for(index = 0;index < ArrayofElements.length;index++){
+        let res = await explore_page_helper(ArrayofElements[index],max_time,slugStatus,$);
+        if(res == false){
+            return res;
+        }
+    }
+    return true
+}
+
+async function GetAllUserIdOfBatch(batch){
+    let batchObj = await batchModel.findOne({'batch':batch});
+    let batchId = batchObj["_id"];
+    let userBatchObj = await userBatchModel.find({batchid:batchId});
+    alluserIds = userBatchObj.map((userbatch)=>{
+        return userbatch.studentid;
+    })
+   //console.log(alluserIds);
+    return alluserIds;
+}
+
+async function updateSolvedStatusOfUser(userId, contestCode){
+    const userproblemStatus = await GetUnsolvedProblemsOfUser(userId, contestCode)
+    // year, month, date, hour, min, sec, mill
+    let contestObj = await contestsModel.findOne({contestCode:contestCode});
+    let time = contestObj.endTime;
+    console.log("contest end time is ",time.toLocaleDateString()+" "+time.toLocaleTimeString());
+    max_time =time.getTime();
+    let codechefId = userproblemStatus["codechefId"];
+    let pageNumber = 0
+    for(pageNumber = 0;pageNumber<10000;pageNumber++){
+        console.log(pageNumber);
+        let res= await explore_page(codechefId, pageNumber, userproblemStatus,max_time);
+        if(res == false){
+            break;
+        }
+    }
+    return userproblemStatus;
+}
+
+async function GetUnsolvedProblemsOfUser(userId1, code){
+    let details = {
+        'userId':userId1,
+        'contestCode':code,
+    }
+    let userId = details.userId;
+    let contestCode = details.contestCode;
+    let contestObj = await contestsModel.findOne({contestCode:contestCode});
+    let contestId = contestObj["_id"];
+    let allContestProblemObj = await contestProblemModel.find({contestId:contestId}).populate("problemId");
+    let allContestProblemId = allContestProblemObj.map((ele)=>{
+          return ele.problemId._id;
+    })
+    let allstatus = ["accepted","lower_solved,lower_partial","solved"]
+    const unsolved = await userProblemModel.find({userId:userId,problemId:{$in:allContestProblemId},status:{$nin:allstatus}}).populate("problemId");
+    const resultObj = {}
+    unsolved.forEach(element => {
+        let slug = element.problemId.slug
+        let verdict = element.status 
+        resultObj[slug] = verdict
+      });
+    const handlesObj = await handlesModel.findOne({userid:userId});
+    const codechefId = handlesObj["codechefHandle"];
+    resultObj["codechefId"] = codechefId;
+    return resultObj;
+}
+
+async function UpdateUserSlugsProblem(userproblemStatus){
+    let codechefId = userproblemStatus["codechefId"];
+    delete userproblemStatus.codechefId;
+    let handleObj = await handlesModel.findOne({codechefHandle:codechefId});
+    let userId = handleObj["userid"];
+    res = []
+    for (let slug in userproblemStatus) {
+        let obj = {};
+        let verdict = userproblemStatus[slug]
+        let problemObj = await problemsModel.findOne({slug:slug});
+        let probId = problemObj["_id"];
+        filter = {
+            'problemId' : probId,
+            'userId' : userId,
+        }
+        update = {
+            'problemId' : probId,
+            'userId' : userId,
+            'status' : verdict,
+        }
+        obj['filter'] = filter;
+        obj['update'] = update;
+        res.push(obj);
+    }
+    await bulkUpdateTheData(userProblemModel, res);
+}
+
+module.exports = {UpdateUserSlugsProblem,GetAllUserIdOfBatch,updateSolvedStatusOfUser,explore_page,updateUserContestData, AddManyUserBatchCollections,findAndUpdateManyCollectionOfUsers,userBatchMapHelper,AddUserContestData}

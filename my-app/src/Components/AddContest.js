@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from "axios";
+import { globalUrl } from "../constants";
 const AddContest = () => {
   const [contestName, setContestName] = useState('');
   const [contestCode, setContestCode] = useState('');
@@ -18,9 +19,8 @@ const AddContest = () => {
     contestObj["problems"] = problems;
     contestObj["startTime"] = new Date();
     contestObj["endTime"] = new Date();
-    const globalurl = `http://localhost:2000/`
     console.log(contestObj);
-    let url = globalurl+`newcontest/addnewcontest`;
+    let url = globalUrl+`newcontest/addnewcontest`;
     let newContestRes = await axios.post(url,contestObj);
     console.log(newContestRes.data);
   }
