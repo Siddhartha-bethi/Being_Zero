@@ -11,6 +11,7 @@ const userContestModel = require("../models/userContestModel");
 const batchModel = require('../models/batchModel');
 const usersModel = require('../models/userModel');
 const handleModel = require('../models/handlesModel');
+const batchUpsolveLastCrawledModel = require("../models/batchUpsolveLastCrawledModel");
 const router=express.Router()
 
 router.post("/postcontest",async (req,res)=>{
@@ -38,7 +39,7 @@ router.get("/getuserproblemcontestDetails", async(req,res)=>{
     let batchObj = await batchModel.find({batch:batch});
     let batchId = batchObj[0]["_id"]
     let studentIdsObjs = await userbatchModel.find({batchid:batchId}).select({ "studentid": 1, "_id": 0})
-    console.log("students objs are ",studentIdsObjs);
+    //console.log("students objs are ",studentIdsObjs);
     let studentIds = studentIdsObjs.map((obj)=>{
         return obj.studentid;
     })
@@ -50,11 +51,22 @@ router.get("/getuserproblemcontestDetails", async(req,res)=>{
     })
     const userProblemObj = await userProblemModel.find({userId:{$in:studentIds},problemId:{$in:allContestProblemId}}).populate(["userId","problemId"]);
     const usercontestObj = await userContestModel.find({userId:{$in:studentIds},contestId:contestId}).populate(["userId"]);
+    let lastUpdatedTime = "";
+    try{
+        let batchupsolvedObj = await batchUpsolveLastCrawledModel.findOne({batchId:batchId,contestId:contestId});
+        let time = batchupsolvedObj.lastCrawledTime;
+        console.log(batchupsolvedObj, time);
+        lastUpdatedTime = time.toLocaleDateString()+" "+time.toLocaleTimeString();
+    }
+    catch(error){
+        lastUpdatedTime = "No updates"
+        console.log("errir re ",lastUpdatedTime,error);
+    }
     res.json({
         userProblemObj:userProblemObj,
         usercontestObj:usercontestObj,
+        lastUpdatedTime : lastUpdatedTime,
     });
-
 })
 
 router.get("/getAllStartersCode",async(req,res)=>{

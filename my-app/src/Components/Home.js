@@ -21,6 +21,7 @@ function Home() {
     const [allStarters,setAllStarters] = useState([]);
     const [loading, setLoading] = useState(false);
     const [allBatchNames, setAllBatcheNames] = useState([]);
+    const [lastUpdate, setLastUpdate] = useState("");
     const navigator = useNavigate();
     
     async function loadPageData(){
@@ -183,6 +184,9 @@ function Home() {
         let res = await axios.get(url);
         let userProblemObj = res.data["userProblemObj"];
         let usercontestObj = res.data["usercontestObj"];
+        let lastUpdateTime = res.data["lastUpdatedTime"];
+        setLastUpdate(lastUpdateTime);
+        console.log("last update was ",lastUpdateTime);
         console.log("userProblemObj is ",userProblemObj);
         console.log("usercontestObj ",usercontestObj);
         let data = userProblemObj.map(userproblem => {
@@ -299,6 +303,7 @@ function Home() {
                 <button type="button" class="btn btn-danger col-3 me-4" onClick={downloadData}>Download Data</button>
                 <button type="button" class="btn btn-danger col-3 me-4" onClick={downloadInvalidHandles}>Download Invalid Handle</button>
                 <button type="button" class="btn btn-danger col-3" onClick={updateUpsolvedStatusOfBatchInContest}>Update Upsolved Status</button>
+                <p>{lastUpdate}</p>
             </div>
                 <br></br>
                 <div class="row">
