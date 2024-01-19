@@ -56,7 +56,9 @@ router.get("/getuserproblemcontestDetails", async(req,res)=>{
         let batchupsolvedObj = await batchUpsolveLastCrawledModel.findOne({batchId:batchId,contestId:contestId});
         let time = batchupsolvedObj.lastCrawledTime;
         console.log(batchupsolvedObj, time);
-        lastUpdatedTime = time.toLocaleDateString()+" "+time.toLocaleTimeString();
+        const timeZone = "Asia/Kolkata";
+        const options = { timeZone: timeZone}
+        lastUpdatedTime = time.toLocaleDateString('en-US', options)+" "+time.toLocaleTimeString('en-US', options);
     }
     catch(error){
         lastUpdatedTime = "No updates"
