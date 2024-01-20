@@ -5,8 +5,10 @@ const Schema = mongoose.Schema;
 mongoose.connect("mongodb+srv://190330283:190330283@cluster0.z4ozsgz.mongodb.net/?retryWrites=true&w=majority");
 
 var batchUpsolveLastCrawledSchema = new Schema({
-    batchId     : {type: Schema.Types.ObjectId, ref : 'batches'},
+    batchId    : {type: Schema.Types.ObjectId, ref : 'batches'},
     contestId  : {type: Schema.Types.ObjectId, ref : 'contests'},
+    status     : {type : String, default : "inactive"},
+    successCount : {type: Number, default : 0},
     lastCrawledTime : {type: Date},
 },{timestamps:true});
 

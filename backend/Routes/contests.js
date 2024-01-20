@@ -1,6 +1,6 @@
 const express = require('express');
 const { json } = require("express")
-const {AddOneToCollection, getData} = require("../DBInteraction")
+const {AddOneToCollection, getData,findAndUpdateData} = require("../DBInteraction")
 const contestModel  = require("../models/contestModel")
 const contestProblemModel = require("../models/contestProblemModel");
 const problemsModel = require("../models/ProblemModel");
@@ -54,6 +54,19 @@ router.get("/getuserproblemcontestDetails", async(req,res)=>{
     let lastUpdatedTime = "";
     try{
         let batchupsolvedObj = await batchUpsolveLastCrawledModel.findOne({batchId:batchId,contestId:contestId});
+        let lastCrawledTime = contestObj[0]["endTime"];
+        if(batchupsolvedObj==null){
+            let filter = {
+                batchId:batchId,
+                contestId:contestId,
+            }
+            let update = {
+                batchId:batchId,
+                contestId:contestId,
+                lastCrawledTime: lastCrawledTime
+            }
+            batchupsolvedObj = await findAndUpdateData(batchUpsolveLastCrawledModel, filter,update);
+        }
         let time = batchupsolvedObj.lastCrawledTime;
         console.log(batchupsolvedObj, time);
         const timeZone = "Asia/Kolkata";

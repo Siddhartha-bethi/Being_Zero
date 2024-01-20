@@ -7,6 +7,7 @@ import "./styles.css";
 import loadingGif from './loading.gif'; 
 import { globalUrl } from '../constants';
 import { useNavigate } from "react-router-dom";
+import ProgressBar from 'react-bootstrap/ProgressBar';
 
 function Home() {
 
@@ -22,6 +23,8 @@ function Home() {
     const [loading, setLoading] = useState(false);
     const [allBatchNames, setAllBatcheNames] = useState([]);
     const [lastUpdate, setLastUpdate] = useState("");
+    const [progress,setProgress] = useState("0%");
+    const [showProgressBar,setProgressbar] = useState(false);
     const navigator = useNavigate();
     
     async function loadPageData(){
@@ -38,8 +41,9 @@ function Home() {
         let starters = startesobj.map((s)=>{
             return s.contestCode;
         })
-        console.log("starters is ",starters);
+
         setAllStarters([...starters]);
+
     }
 
     const combineData = (data1, data2) => {
@@ -79,7 +83,6 @@ function Home() {
             else if(element['status'] == "accepted"){
                 problemupsolvedcount[element['problemName']]+=1
             }
-            console.log(element["status"]);
         });
         let solvedProblemsinContest = []
         let solvedProblems =[]
@@ -88,7 +91,6 @@ function Home() {
             solvedProblems.push([key, problemupsolvedcount[key]])
         }
         let k1 = await combineData(solvedProblemsinContest, solvedProblems);
-        console.log("k1 is ",k1);
         const combinedData = [['Category', 'Solved In Contest', 'Total Solved'],...k1];
         setCombine([...combinedData])
     } 
@@ -118,7 +120,6 @@ function Home() {
                 divcount[div]=1
             }
         });
-        console.log("person participation",personparticipatedstatus)
         setUserStatus({...personparticipatedstatus})
         let divarray = [["div","count"]]
         for (const [key, value] of Object.entries(divcount)) {
@@ -129,9 +130,6 @@ function Home() {
         let pparray = [["ParticipationStatus ","count"]]
         pparray.push(["Participated",pcount]);
         pparray.push(["Not Participated",batchsize-pcount]);
-
-        console.log("divdata",divarray);
-        console.log("participation Data ",pparray)
         setParticipationData([...pparray]);
     }
 
@@ -161,9 +159,6 @@ function Home() {
         let invalidStudentRolls = invalidhandleStudentsObj.map((ele)=>{
             return [ele["userId"]["rollNumber"], ele["participated"]]
          })
-         
-        console.log("invalidStudentRolls ",invalidStudentRolls);
-        console.log("invalidhandleStudents ",invalidhandleStudentsObj);
 
         let handlevalidationstatus = [["status","count"]]
         handlevalidationstatus.push(["NOT FILLED",handles["NOT FILLED"]])
@@ -263,25 +258,53 @@ function Home() {
         XLSX.writeFile(wb, 'output.xlsx');
     }
 
-    async function updateUpsolvedStatusOfBatchInContest(){
-        setLoading(true)
-        try{
-        let batch = document.getElementById("batch").value
-        let code = document.getElementById("code").value
-        let details = {
-            contestCode: code,
-            batch: batch
-            }
-        let url = globalUrl+'upsolve/upsolveData';
-        let res = await axios.post(url, details);
-        console.log(res.data);
+    async function updateUpsolvedStatusOfBatchInContest() {
+        
+    
+        try {
+            let batch = document.getElementById("batch").value;
+            let code = document.getElementById("code").value;
+            let details = {
+                contestCode: code,
+                batch: batch
+            };
+    
+            let url = globalUrl + 'upsolve/upsolveData';
+            let url1 = globalUrl + 'upsolve/checkupsolveData'
+            setProgressbar(true);
+            let response1 = await axios.post(url, details);
+    
+            // Function to make the API call
+            const makeApiCall = async () => {
+                try {
+                    let res = await axios.post(url1, details);
+                    console.log("response received is ",res.data.message);
+
+                    if (res.data.message == "Still Processing") {
+                        console.log("came with ",res.data);
+                        setProgress(res.data.successCount);
+                        setTimeout(makeApiCall, 2000);
+                        
+                    } else {
+                        setProgressbar(false);
+                        setLoading(true);
+                        await getData();
+                        setLoading(false);
+                    }
+                } catch (error) {
+                    console.log("error ", error);
+                    
+                }
+            };
+    
+            // Initial API call
+            await makeApiCall();
+        } catch (error) {
+            console.log("error ", error);
+            setLoading(false);
         }
-        catch(error){
-            console.log("error ",error);
-        }
-        setLoading(false);
-        await getData();
     }
+    
 
     useEffect(()=>{
         loadPageData();
@@ -305,6 +328,9 @@ function Home() {
                 <button type="button" class="btn btn-danger col-3" onClick={updateUpsolvedStatusOfBatchInContest}>Update Upsolved Status</button>
                 <p>{lastUpdate}</p>
             </div>
+            {showProgressBar==true &&(
+            <ProgressBar now={progress} label={`${progress}%`} />
+            )}
                 <br></br>
                 <div class="row">
                     <div class="row mt-2 mb-2 col-4">
