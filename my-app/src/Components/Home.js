@@ -22,10 +22,23 @@ function Home() {
     const [allStarters,setAllStarters] = useState([]);
     const [loading, setLoading] = useState(false);
     const [allBatchNames, setAllBatcheNames] = useState([]);
-    const [lastUpdate, setLastUpdate] = useState("");
+    const [lastUpdate, setLastUpdate] = useState([]);
     const [progress,setProgress] = useState("0%");
     const [showProgressBar,setProgressbar] = useState(false);
     const navigator = useNavigate();
+    const [selectedBatches, setSelectedBatches] = useState([]);
+
+    async function updateSelectedBatch(batch){
+        const updatedSelection = [...selectedBatches];
+        if(updatedSelection.includes(batch)){
+            updatedSelection.splice(updatedSelection.indexOf(batch), 1);
+        }
+        else{
+            updatedSelection.push(batch);
+        }
+        console.log(updatedSelection);
+        setSelectedBatches([...updatedSelection]);
+    }
     
     async function loadPageData(){
         let url1 = globalUrl+`batch/getAllBatches`;
@@ -171,17 +184,26 @@ function Home() {
     async function getData() {
         setLoading(true)
         console.log("came to getData"); 
-        let batch = document.getElementById("batch").value
+        let batches = [...selectedBatches];
         let code = document.getElementById("code").value
-        console.log("batch is ",batch);
+        // console.log("batch is ",batch);
         console.log("code is ",code);
-        let url = globalUrl+`contests/getuserproblemcontestDetails?batch=${batch}&code=${code}`;
-        let res = await axios.get(url);
+        let payload = {
+            code: code,
+            batches:batches
+        }
+        let url = globalUrl+`contests/getuserproblemcontestDetails`;
+        let res = await axios.post(url, payload);
         let userProblemObj = res.data["userProblemObj"];
         let usercontestObj = res.data["usercontestObj"];
-        let lastUpdateTime = res.data["lastUpdatedTime"];
-        setLastUpdate(lastUpdateTime);
-        console.log("last update was ",lastUpdateTime);
+        let lastUpdateTimeObj = res.data["lastUpdatedTimeObj"];
+        let ans = []
+        for(let key in lastUpdateTimeObj){
+            let string = key + " : "+ lastUpdateTimeObj[key]
+            ans.push(string);
+        }
+        setLastUpdate(ans);
+        console.log("last update was ",lastUpdateTimeObj);
         console.log("userProblemObj is ",userProblemObj);
         console.log("usercontestObj ",usercontestObj);
         let data = userProblemObj.map(userproblem => {
@@ -190,6 +212,7 @@ function Home() {
                         rollNumber : userproblem.userId.rollNumber,
                         problemName : userproblem.problemId.name,
                         status : userproblem.status,
+                        batch : userproblem.batch
                        }
             return obj
         });
@@ -262,7 +285,11 @@ function Home() {
         
     
         try {
-            let batch = document.getElementById("batch").value;
+            if(selectedBatches.length>1){
+                alert("Please select only one batch for update");
+                return 
+            }
+            let batch = selectedBatches[0];
             let code = document.getElementById("code").value;
             let details = {
                 contestCode: code,
@@ -325,8 +352,16 @@ function Home() {
             <div class = "row mt-3">
                 <button type="button" class="btn btn-danger col-3 me-4" onClick={downloadData}>Download Data</button>
                 <button type="button" class="btn btn-danger col-3 me-4" onClick={downloadInvalidHandles}>Download Invalid Handle</button>
-                <button type="button" class="btn btn-danger col-3" onClick={updateUpsolvedStatusOfBatchInContest}>Update Upsolved Status</button>
-                <p>{lastUpdate}</p>
+                <button type="button" class="btn btn-danger col-3 me-3" onClick={updateUpsolvedStatusOfBatchInContest}>Update Upsolved Status</button>
+                <button type="button" class="btn btn-success col-3 me-3" onClick={getData}>Get Data</button>
+                {lastUpdate.map((str)=>{
+                    return(
+                        <p>
+                            {str}
+                        </p>
+                        
+                    )
+                })}
             </div>
             {showProgressBar==true &&(
             <ProgressBar now={progress} label={`${progress}%`} />
@@ -335,19 +370,28 @@ function Home() {
                 <div class="row">
                     <div class="row mt-2 mb-2 col-4">
                         <div>
-                            <select class="form-select" name="batch" id="batch" onChange={getData}>
-                                    {allbatches.map((b)=>{
-                                        return(
-                                        <option value = {b}>{b}</option>       
-                                        )
-                                    })
-                                }   
-                            </select>
+                            {allbatches.map((b) => {
+                                return(
+                                    <div>
+                                        <input
+                                            type="checkbox"
+                                            id={b}
+                                            value={b}
+                                            placeholder={b}
+                                            checked={selectedBatches.includes(b)}
+                                            onChange={() => updateSelectedBatch(b)}
+                                        />
+                                        <label className="form-check-label" htmlFor={b}>
+                                            {b}
+                                        </label>
+                                    </div>
+                                )
+                            })}
                         </div>
                     </div>
                     <div class="row mt-2 mb-2 col-4">
                         <div>
-                            <select class="form-select" name="code" id="code" onChange={getData}>
+                            <select class="form-select" name="code" id="code">
                                     {allStarters.map((b)=>{
                                         return(
                                         <option value = {b}>{b}</option>       

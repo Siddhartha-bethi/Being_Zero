@@ -19,33 +19,36 @@ router.post("/upsolveData",async(req,res)=>{
     let contestId = contestObj["_id"];
     let batchUpsolveLastCrawledModelObj = await batchUpsolveLastCrawledModel.findOne({contestId:contestId,batchId:batchId});
     alluserIds = await GetAllUserIdOfBatch(batch);
+    console.log("received request to update ",batchUpsolveLastCrawledModelObj);
     if(batchUpsolveLastCrawledModelObj["status"] == "active"){
         res.json({
             message:"Still Processing",
             successCount: (batchUpsolveLastCrawledModelObj["successCount"]*100)/(alluserIds.length)
         })
     }
-    helper(details);
-    let filter = {
-        batchId: batchId,
-        contestId:contestId,
+    else{
+        helper(details);
+        let filter = {
+            batchId: batchId,
+            contestId:contestId,
+        }
+        let update = {
+            batchId: batchId,
+            contestId:contestId,
+            status:"active",
+            successCount:0
+        }
+        await findAndUpdateData(batchUpsolveLastCrawledModel, filter,update);
+        res.json({
+            message:"Still Processing",
+            successCount: (batchUpsolveLastCrawledModelObj["successCount"]*100)/(alluserIds.length)
+        });
     }
-    let update = {
-        batchId: batchId,
-        contestId:contestId,
-        status:"active",
-        successCount:0
-    }
-    await findAndUpdateData(batchUpsolveLastCrawledModel, filter,update);
-    res.json({
-        message:"Still Processing",
-        successCount: (batchUpsolveLastCrawledModelObj["successCount"]*100)/(alluserIds.length)
-    });
 })
 
 router.post("/checkupsolveData",async(req,res)=>{
     let details = req.body;
-    let batch = details.batch;
+    let batch = details.batch
     let batchObj = await batchModel.findOne({batch:batch});
     let batchId = batchObj["_id"];
     let contestCode = details.contestCode;
@@ -76,6 +79,7 @@ async function helper(details){
     let batchObj = await batchModel.findOne({batch:batch});
     let batchId = batchObj["_id"];
     let contestCode = details.contestCode;
+    console.log("batch While upodating ",batch, batchId);
     let contestObj = await contestsModel.findOne({contestCode:contestCode});
     let contestId = contestObj["_id"];
     alluserIds = await GetAllUserIdOfBatch(batch);
