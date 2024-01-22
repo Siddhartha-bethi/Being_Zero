@@ -224,48 +224,51 @@ function Home() {
     };
 
     async function downloadData(){
-    let data = [...reportData]
-    const problemNames = Array.from(new Set(data.map(item => item.problemName)));
-    // Create a new workbook
-    const workbook = XLSX.utils.book_new();
+        let data = [...reportData]
+const problemNames = Array.from(new Set(data.map(item => item.problemName)));
+// Create a new workbook
+const workbook = XLSX.utils.book_new();
 
-    // Extract common headers (excluding 'problemName' and 'status')
-    const commonHeaders = Object.keys(data[0]).filter(header => header !== 'problemName' && header !== 'status');
+// Extract common headers (excluding 'problemName' and 'status')
+const commonHeaders = Object.keys(data[0]).filter(header => header !== 'problemName' && header !== 'status');
 
-    // Combine common headers with unique problem names to create all headers
-    const allHeaders = [...commonHeaders, ...problemNames,'Participated'];
+// Combine common headers with unique problem names to create all headers
+const allHeaders = [...commonHeaders, ...problemNames, 'Participated', 'Upsolved']; // Add 'Upsolved'
 
-    // Create a map to store user data
-    const userDataMap = new Map();
+// Create a map to store user data
+const userDataMap = new Map();
 
-    // Populate the map with user data
-    data.forEach(item => {
+// Populate the map with user data
+data.forEach(item => {
     const userKey = `${item.name}_${item.rollNumber}_${item.handle}`;
     if (!userDataMap.has(userKey)) {
         userDataMap.set(userKey, { ...item, [item.problemName]: item.status });
     } else {
         userDataMap.get(userKey)[item.problemName] = item.status;
     }
-    });
+});
 
-    const dataArray = Array.from(userDataMap.values()).map(user => {
-        // Add the "Participated" value based on the rollNumber
-        const participatedValue = userStatus[user.rollNumber] || '';
-        return allHeaders.map(header => (header === 'Participated' ? participatedValue : user[header] || ''));
-      });
-    console.log("dataarray main is ",dataArray);
-    // Add headers to the beginning of the array
-    dataArray.unshift(allHeaders);
+const dataArray = Array.from(userDataMap.values()).map(user => {
+    // Add the "Participated" and "Upsolved" values based on the rollNumber
+    const participatedValue = userStatus[user.rollNumber] || '';
+    const upsolvedValue = Object.values(user).some(status => status === 'accepted'); // Check if any cell is "accepted"
+    return allHeaders.map(header => (header === 'Participated' ? participatedValue : header === 'Upsolved' ? upsolvedValue : user[header] || ''));
+});
 
-    // Create a worksheet from the array
-    const worksheet = XLSX.utils.aoa_to_sheet(dataArray);
+console.log("dataarray main is ", dataArray);
+// Add headers to the beginning of the array
+dataArray.unshift(allHeaders);
 
-    // Add the worksheet to the workbook
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+// Create a worksheet from the array
+const worksheet = XLSX.utils.aoa_to_sheet(dataArray);
 
-    // Write the workbook to an Excel file
-    XLSX.writeFile(workbook, 'output.xlsx', { bookType: 'xlsx', bookSST: false, type: 'file' });
-    }
+// Add the worksheet to the workbook
+XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+
+// Write the workbook to an Excel file
+XLSX.writeFile(workbook, 'output.xlsx', { bookType: 'xlsx', bookSST: false, type: 'file' });
+}
+
 
     async function downloadInvalidHandles(){
         const dataWithHeaders = [['Roll Number', 'Handle'], ...invalidhandleStudent];

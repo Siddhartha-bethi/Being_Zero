@@ -448,6 +448,7 @@ async function explore_page_helper(element,max_time,slugStatus,$){
     if(time.includes("ago")){
         try{
             submissionTime  = await getRecentSubmissionTime(solutionLink);
+            console.log("User with ago submission time ",submissionTime);
         }
         catch(error){
             console.log("taking default", solutionLink,problem,verdict);
@@ -457,11 +458,12 @@ async function explore_page_helper(element,max_time,slugStatus,$){
     else{
         submissionTime = convertTimeToDate(time);
     }
-    //console.log(submissionTime, problem, verdict, max_time);
     if(max_time>submissionTime){
+        console.log(submissionTime, problem, verdict, max_time);
         console.log("gone");
         return false;
     }
+    console.log(submissionTime, problem, verdict, max_time);
     if(problem in slugStatus){
         p1 = givePriority(slugStatus[problem])
         p2 = givePriority(verdict)
@@ -514,6 +516,7 @@ async function updateSolvedStatusOfUser(userId, contestCode){
     let time = contestObj.endTime;
     console.log("contest end time is ",time.toLocaleDateString()+" "+time.toLocaleTimeString());
     max_time =time.getTime();
+    console.log("Going To Update ",userId);
     let codechefId = userproblemStatus["codechefId"];
     let pageNumber = 0
     for(pageNumber = 0;pageNumber<10000;pageNumber++){
