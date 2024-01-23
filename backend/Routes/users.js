@@ -7,7 +7,7 @@ const handleModel = require("../models/handlesModel");
 const router=express.Router()
 
 router.post("/newusers",async (req,res)=>{
-    console.log("adding nnew users");
+    console.log("adding new users");
     data = req.body
     newusers = 0;
     newhandles = 0;
