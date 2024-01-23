@@ -8,6 +8,8 @@ import loadingGif from './loading.gif';
 import { globalUrl } from '../constants';
 import { useNavigate } from "react-router-dom";
 import ProgressBar from 'react-bootstrap/ProgressBar';
+import { Multiselect } from 'multiselect-react-dropdown';
+import DisplayTable from './DisplayTable';
 
 function Home() {
 
@@ -27,18 +29,19 @@ function Home() {
     const [showProgressBar,setProgressbar] = useState(false);
     const navigator = useNavigate();
     const [selectedBatches, setSelectedBatches] = useState([]);
+    const [displayData, setDisplayData] = useState([]);
 
-    async function updateSelectedBatch(batch){
-        const updatedSelection = [...selectedBatches];
-        if(updatedSelection.includes(batch)){
-            updatedSelection.splice(updatedSelection.indexOf(batch), 1);
-        }
-        else{
-            updatedSelection.push(batch);
-        }
-        console.log(updatedSelection);
-        setSelectedBatches([...updatedSelection]);
-    }
+    const updateSelectedBatch = (selectedList) => {
+        setSelectedBatches(selectedList.map((batch) => batch.name));
+      };
+    
+      const selectAllBatches = () => {
+        setSelectedBatches(allbatches);
+      };
+    
+      const clearAllBatches = () => {
+        setSelectedBatches([]);
+      };
     
     async function loadPageData(){
         let url1 = globalUrl+`batch/getAllBatches`;
@@ -134,6 +137,7 @@ function Home() {
             }
         });
         setUserStatus({...personparticipatedstatus})
+        console.log("personparticipation ",personparticipatedstatus);
         let divarray = [["div","count"]]
         for (const [key, value] of Object.entries(divcount)) {
             divarray.push([key, value]);
@@ -144,6 +148,7 @@ function Home() {
         pparray.push(["Participated",pcount]);
         pparray.push(["Not Participated",batchsize-pcount]);
         setParticipationData([...pparray]);
+        return personparticipatedstatus;
     }
 
     async function buildHandleStatusData(usercontestObj){
@@ -183,11 +188,8 @@ function Home() {
 
     async function getData() {
         setLoading(true)
-        console.log("came to getData"); 
         let batches = [...selectedBatches];
         let code = document.getElementById("code").value
-        // console.log("batch is ",batch);
-        console.log("code is ",code);
         let payload = {
             code: code,
             batches:batches
@@ -217,57 +219,58 @@ function Home() {
             return obj
         });
         setReportData([...data]);
-        await buildProblemSolvedCount(data)
-        await buildDivChartData(usercontestObj);
+        await buildProblemSolvedCount(data);
+        let personparticipatedstatus = await buildDivChartData(usercontestObj);
         await buildHandleStatusData(usercontestObj);
+        await MakeData(data,personparticipatedstatus);
         setLoading(false);
     };
-
     async function downloadData(){
-        let data = [...reportData]
-const problemNames = Array.from(new Set(data.map(item => item.problemName)));
-// Create a new workbook
-const workbook = XLSX.utils.book_new();
-
-// Extract common headers (excluding 'problemName' and 'status')
-const commonHeaders = Object.keys(data[0]).filter(header => header !== 'problemName' && header !== 'status');
-
-// Combine common headers with unique problem names to create all headers
-const allHeaders = [...commonHeaders, ...problemNames, 'Participated', 'Upsolved']; // Add 'Upsolved'
-
-// Create a map to store user data
-const userDataMap = new Map();
-
-// Populate the map with user data
-data.forEach(item => {
-    const userKey = `${item.name}_${item.rollNumber}_${item.handle}`;
-    if (!userDataMap.has(userKey)) {
-        userDataMap.set(userKey, { ...item, [item.problemName]: item.status });
-    } else {
-        userDataMap.get(userKey)[item.problemName] = item.status;
+        const dataArray = [...displayData];
+        const workbook = XLSX.utils.book_new();
+        const worksheet = XLSX.utils.aoa_to_sheet(dataArray);
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+        XLSX.writeFile(workbook, 'output.xlsx', { bookType: 'xlsx', bookSST: false, type: 'file' });
     }
-});
+    async function MakeData(data,personparticipatedstatus){
+        let userStatus = personparticipatedstatus;
+        const problemNames = Array.from(new Set(data.map(item => item.problemName)));
+        const commonHeaders = Object.keys(data[0]).filter(header => header !== 'problemName' && header !== 'status');
+        const allHeaders = [...commonHeaders, ...problemNames, 'Participated', 'Upsolved'];
+        const userDataMap = new Map();
 
-const dataArray = Array.from(userDataMap.values()).map(user => {
-    // Add the "Participated" and "Upsolved" values based on the rollNumber
-    const participatedValue = userStatus[user.rollNumber] || '';
-    const upsolvedValue = Object.values(user).some(status => status === 'accepted'); // Check if any cell is "accepted"
-    return allHeaders.map(header => (header === 'Participated' ? participatedValue : header === 'Upsolved' ? upsolvedValue : user[header] || ''));
-});
+        data.forEach(item => {
+        const userKey = `${item.name}_${item.rollNumber}_${item.handle}`;
+        if (!userDataMap.has(userKey)) {
+            userDataMap.set(userKey, { ...item, [item.problemName]: item.status });
+        } else {
+            userDataMap.get(userKey)[item.problemName] = item.status;
+        }
+        });
+        const dataArray = [];
+        const userValues = Array.from(userDataMap.values());
+        for (let i = 0; i < userValues.length; i++) {
+            const user = userValues[i];
+            let roll = user["rollNumber"]
+            const participatedValue = userStatus[roll] || '';
+            const upsolvedValue = Object.values(user).some(status => status === 'accepted');
 
-console.log("dataarray main is ", dataArray);
-// Add headers to the beginning of the array
-dataArray.unshift(allHeaders);
-
-// Create a worksheet from the array
-const worksheet = XLSX.utils.aoa_to_sheet(dataArray);
-
-// Add the worksheet to the workbook
-XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
-
-// Write the workbook to an Excel file
-XLSX.writeFile(workbook, 'output.xlsx', { bookType: 'xlsx', bookSST: false, type: 'file' });
-}
+            const row = [];
+            for (let j = 0; j < allHeaders.length; j++) {
+                const header = allHeaders[j];
+                const cellValue = (
+                header === 'Participated' ? participatedValue :
+                header === 'Upsolved' ? (upsolvedValue ? 'TRUE' : 'FALSE') :
+                user[header] || ''
+                );
+                row.push(cellValue);
+            }
+            dataArray.push(row);
+        }
+        dataArray.unshift(allHeaders);
+        console.log("please dataArray is ",dataArray)
+        setDisplayData([...dataArray]);
+    }
 
 
     async function downloadInvalidHandles(){
@@ -286,7 +289,6 @@ XLSX.writeFile(workbook, 'output.xlsx', { bookType: 'xlsx', bookSST: false, type
 
     async function updateUpsolvedStatusOfBatchInContest() {
         
-    
         try {
             if(selectedBatches.length>1){
                 alert("Please select only one batch for update");
@@ -341,10 +343,9 @@ XLSX.writeFile(workbook, 'output.xlsx', { bookType: 'xlsx', bookSST: false, type
     },[])
     return (
         <div className="App1">
-            <body>
                 <div class="row mt-4 mb-4">
                     <nav class="navbar navbar-light">
-                        <form class="container-fluid justify-content-start">
+                        <form class="container-fluid justify-content-center">
                             <button class="btn btn-outline-success me-2" type="button" onClick={() => navigator("/addNewUsers")}>AddNewUsers</button>
                             <button class="btn btn-outline-success me-2" type="button" onClick={() => navigator("/addNewBatchTitle")}>AddNewBatchTitle</button>
                             <button class="btn btn-outline-success me-2" type="button" onClick={() => navigator("/addUserBatchRelation")}>AddUserBatchRelation</button>
@@ -352,146 +353,84 @@ XLSX.writeFile(workbook, 'output.xlsx', { bookType: 'xlsx', bookSST: false, type
                         </form>
                     </nav>
                 </div>
-            <div class = "row mt-3">
+            <div class = "row mt-3 container-fluid justify-content-center">
                 <button type="button" class="btn btn-danger col-3 me-4" onClick={downloadData}>Download Data</button>
                 <button type="button" class="btn btn-danger col-3 me-4" onClick={downloadInvalidHandles}>Download Invalid Handle</button>
                 <button type="button" class="btn btn-danger col-3 me-3" onClick={updateUpsolvedStatusOfBatchInContest}>Update Upsolved Status</button>
-                <button type="button" class="btn btn-success col-3 me-3" onClick={getData}>Get Data</button>
-                {lastUpdate.map((str)=>{
-                    return(
-                        <p>
-                            {str}
-                        </p>
-                        
-                    )
-                })}
             </div>
             {showProgressBar==true &&(
             <ProgressBar now={progress} label={`${progress}%`} />
             )}
                 <br></br>
-                <div class="row">
-                    <div class="row mt-2 mb-2 col-4">
+                <div class="row container-fluid justify-content-center">
+                    <div class="col-3">
                         <div>
-                            {allbatches.map((b) => {
-                                return(
-                                    <div>
-                                        <input
-                                            type="checkbox"
-                                            id={b}
-                                            value={b}
-                                            placeholder={b}
-                                            checked={selectedBatches.includes(b)}
-                                            onChange={() => updateSelectedBatch(b)}
-                                        />
-                                        <label className="form-check-label" htmlFor={b}>
-                                            {b}
-                                        </label>
-                                    </div>
-                                )
-                            })}
+                        <Multiselect
+                            options={[
+                            { name: 'All' },
+                            ...allbatches.map((batch) => ({ name: batch })),
+                            ]}
+                            selectedValues={selectedBatches.map((batch) => ({ name: batch }))}
+                            onSelect={(selectedList) => {
+                            if (selectedList.some((batch) => batch.name === 'All')) {
+                                selectAllBatches();
+                            } else {
+                                updateSelectedBatch(selectedList);
+                            }
+                            }}
+                            onRemove={(selectedList) => {
+                            if (selectedList.some((batch) => batch.name === 'All')) {
+                                clearAllBatches();
+                            } else {
+                                updateSelectedBatch(selectedList);
+                            }
+                            }}
+                            displayValue="name"
+                        />
                         </div>
                     </div>
-                    <div class="row mt-2 mb-2 col-4">
-                        <div>
-                            <select class="form-select" name="code" id="code">
-                                    {allStarters.map((b)=>{
-                                        return(
-                                        <option value = {b}>{b}</option>       
-                                        )
-                                    })
-                                }   
-                            </select>
-                        </div>
+                    <div className="col-2">
+                        <select className="form-select" name="code" id="code">
+                        {allStarters.map((b) => (
+                            <option value={b} key={b}>
+                            {b}
+                            </option>
+                        ))}
+                        </select>
                     </div>
+                    <div className="col-5">
+                        <button type="button" className="btn btn-success col-3 me-3" onClick={getData}>
+                        Get Data
+                        </button>
+                    </div>
+           
                 </div>
-                
+                <div class="ms-10"> 
+                    {lastUpdate.map((str)=>{
+                        return(
+                            <div class="container-fluid justify-content-center" >
+                                <b>{str}</b>
+                            </div>  
+                        )
+                    })}
+                </div>
                 <br></br>
                 {loading ? (
                     <img src={loadingGif} alt="Loading..." style={{ width: '250px', height: '250px' }} />
                 ) : (
-                    <div className='graphs'>
-                    <Chart
-                        chartType="ColumnChart"
-                        data={handleStatus}
-                        options={{
-                            title: "Handles Status",
-                            is3D: true,
-                        }}
-                        width={"100%"}
-                        height={"400px"}
-                        style={{
-                            // Add your CSS styles here
-                            borderLeft: "1px solid #ccc",
-                            borderRight: "1px solid #ccc",
-                            borderBottom: "1px solid #ccc",
-                            borderRadius: "0 0 8px 8px",
-                            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-                            margin: "20px 0",
-                        }}
-                    />
-                    <Chart
-                        chartType="ColumnChart"
-                        data={divData}
-                        options={{
-                            title: "Div-wise Students Count",
-                            is3D: true,
-                        }}
-                        width={"100%"}
-                        height={"400px"}
-                        style={{
-                            // Add your CSS styles here
-                            borderLeft: "1px solid #ccc",
-                            borderRight: "1px solid #ccc",
-                            borderBottom: "1px solid #ccc",
-                            borderRadius: "0 0 8px 8px",
-                            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-                            margin: "20px 0",
-                        }}
-                    />
-
-                    <Chart
-                        chartType="ColumnChart"
-                        data={participationData}
-                        options={{
-                            title: "Participation Status in Contest",
-                            is3D: true,
-                        }}
-                        width={"100%"}
-                        height={"400px"}
-                        style={{
-                            // Add your CSS styles here
-                            borderLeft: "1px solid #ccc",
-                            borderRight: "1px solid #ccc",
-                            borderBottom: "1px solid #ccc",
-                            borderRadius: "0 0 8px 8px",
-                            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-                            margin: "20px 0",
-                        }}
-                    />
-                    <Chart
+                    <div className='graphs' style={{ display: 'flex', flexWrap: 'wrap' }}>
+                        {/* First Row */}
+                        <div style={{ flexBasis: '50%', padding: '10px' }}>
+                            <Chart
                             chartType="ColumnChart"
-                            data={combine}
+                            data={handleStatus}
                             options={{
-                                title: 'Combined Chart',
+                                title: "Handles Status",
                                 is3D: true,
-                                bar: { groupWidth: '80%' },
-                                series: {
-                                    0: { color: 'blue' },
-                                    1: { color: 'green' },
-                                },
-                                dataLabels: {
-                                    visible: true,
-                                    fontSize: 12,
-                                    bold: true,
-                                    color: 'black',
-                                    format: '#',
-                                },
                             }}
-                            width="100%"
-                            height="400px"
+                            width={"100%"}
+                            height={"400px"}
                             style={{
-                                // Add your CSS styles here
                                 borderLeft: "1px solid #ccc",
                                 borderRight: "1px solid #ccc",
                                 borderBottom: "1px solid #ccc",
@@ -499,10 +438,87 @@ XLSX.writeFile(workbook, 'output.xlsx', { bookType: 'xlsx', bookSST: false, type
                                 boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
                                 margin: "20px 0",
                             }}
-                        />
+                            />
                         </div>
+                        <div style={{ flexBasis: '50%', padding: '10px' }}>
+                            <Chart
+                            chartType="ColumnChart"
+                            data={divData}
+                            options={{
+                                title: "Div-wise Students Count",
+                                is3D: true,
+                            }}
+                            width={"100%"}
+                            height={"400px"}
+                            style={{
+                                borderLeft: "1px solid #ccc",
+                                borderRight: "1px solid #ccc",
+                                borderBottom: "1px solid #ccc",
+                                borderRadius: "0 0 8px 8px",
+                                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                                margin: "20px 0",
+                            }}
+                            />
+                        </div>
+
+                        {/* Second Row */}
+                        <div style={{ flexBasis: '50%', padding: '10px' }}>
+                            <Chart
+                            chartType="ColumnChart"
+                            data={participationData}
+                            options={{
+                                title: "Participation Status in Contest",
+                                is3D: true,
+                            }}
+                            width={"100%"}
+                            height={"400px"}
+                            style={{
+                                borderLeft: "1px solid #ccc",
+                                borderRight: "1px solid #ccc",
+                                borderBottom: "1px solid #ccc",
+                                borderRadius: "0 0 8px 8px",
+                                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                                margin: "20px 0",
+                            }}
+                            />
+                        </div>
+                        <div style={{ flexBasis: '50%', padding: '10px' }}>
+                            <Chart
+                            chartType="ColumnChart"
+                            data={combine}
+                            options={{
+                                title: 'Combined Chart',
+                                is3D: true,
+                                bar: { groupWidth: '80%' },
+                                series: {
+                                0: { color: 'blue' },
+                                1: { color: 'green' },
+                                },
+                                dataLabels: {
+                                visible: true,
+                                fontSize: 12,
+                                bold: true,
+                                color: 'black',
+                                format: '#',
+                                },
+                            }}
+                            width="100%"
+                            height="400px"
+                            style={{
+                                borderLeft: "1px solid #ccc",
+                                borderRight: "1px solid #ccc",
+                                borderBottom: "1px solid #ccc",
+                                borderRadius: "0 0 8px 8px",
+                                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                                margin: "20px 0",
+                            }}
+                            />
+                        </div>
+                    </div>
+
                 )}
-            </body>
+                {displayData.length>0 && showProgressBar==false && 
+                 <DisplayTable dataArray={displayData}></DisplayTable>}
         </div>
     );
 }

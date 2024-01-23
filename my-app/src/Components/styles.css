@@ -6,7 +6,7 @@ body {
   }
   
   .App1 {
-    max-width: 800px;
+    max-width: 80%;
     margin: auto;
   }
   
@@ -36,4 +36,18 @@ body {
 
   };
   
+  .table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  
+  .table th, .table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  .table th {
+    background-color: #f2f2f2;
+  }
   
