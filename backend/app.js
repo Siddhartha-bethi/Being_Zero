@@ -17,17 +17,13 @@ const contestRouter = require("./Routes/contests");
 const userRouter = require("./Routes/users");
 const batchRouter = require("./Routes/batches");
 const upsolveDataRouter = require("./Routes/upsolveData");
-// const charRouter = require("./Routes/charts");
-// const userProblem = require("./Routes/userProblem");
 const contestDataRouter = require("./Routes/addContestData");
-// const problemRouter = require("./Routes/problem");
 const newContestRouter = require("./Routes/createContest");
 app.use(express.urlencoded({extended:true}));
 
 app.use("/contests", contestRouter);
 app.use("/users", userRouter);
 app.use("/batch", batchRouter);
-// app.use("/userproblem",userProblem);
 app.use("/contestData", contestDataRouter);
 app.use("/newcontest", newContestRouter);
 app.use("/upsolve",upsolveDataRouter);

@@ -147,6 +147,8 @@ function Home() {
         let pparray = [["ParticipationStatus ","count"]]
         pparray.push(["Participated",pcount]);
         pparray.push(["Not Participated",batchsize-pcount]);
+        let per = (pcount*100)/batchsize;
+        document.getElementById("participationStatusPercentage").innerHTML = `Participation Percentage = ${per}`
         setParticipationData([...pparray]);
         return personparticipatedstatus;
     }
@@ -248,13 +250,17 @@ function Home() {
         }
         });
         const dataArray = [];
+        let upsolvingStudent = 0;
         const userValues = Array.from(userDataMap.values());
+        let totalStudents = userValues.length;
         for (let i = 0; i < userValues.length; i++) {
             const user = userValues[i];
             let roll = user["rollNumber"]
             const participatedValue = userStatus[roll] || '';
             const upsolvedValue = Object.values(user).some(status => status === 'accepted');
-
+            if(upsolvedValue==true){
+                upsolvingStudent+=1;
+            }
             const row = [];
             for (let j = 0; j < allHeaders.length; j++) {
                 const header = allHeaders[j];
@@ -267,6 +273,8 @@ function Home() {
             }
             dataArray.push(row);
         }
+        let per = ((upsolvingStudent)*100)/totalStudents
+        document.getElementById("upsolvingStatusPercentage").innerHTML = `Upsolving Percentage = ${per}`
         dataArray.unshift(allHeaders);
         console.log("please dataArray is ",dataArray)
         setDisplayData([...dataArray]);
@@ -403,7 +411,6 @@ function Home() {
                         Get Data
                         </button>
                     </div>
-           
                 </div>
                 <div class="ms-10"> 
                     {lastUpdate.map((str)=>{
@@ -413,6 +420,12 @@ function Home() {
                             </div>  
                         )
                     })}
+                </div>
+                <div className='ms-10'>
+                       <div id='participationStatusPercentage'></div>
+                </div>
+                <div className='ms-10'>
+                    <div id='upsolvingStatusPercentage'></div>
                 </div>
                 <br></br>
                 {loading ? (
